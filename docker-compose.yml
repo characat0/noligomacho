@@ -1,0 +1,22 @@
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    container_name: elasticsearch
+    environment:
+      - "xpack.security.enabled=false"
+      - "discovery.type=single-node"
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g -XX:G1ReservePercent=25 -XX:InitiatingHeapOccupancyPercent=30"
+    ports:
+      - "9201:9201"
+    volumes:
+      - noligodata:/usr/share/elasticsearch/data
+
+  webapp:
+    build: ./noligomacho
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    ports:
+      - "8080:8080"
+
+volumes:
+  noligodata:
