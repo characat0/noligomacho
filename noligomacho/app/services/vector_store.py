@@ -12,7 +12,7 @@ from langchain_text_splitters import SentenceTransformersTokenTextSplitter
 class VectorStoreService:
     def __init__(self):
         self.vector_store = InMemoryVectorStore(
-            OllamaEmbeddings(model="llama3.2:1b", temperature=0),
+            OllamaEmbeddings(model="llama3:8b", temperature=0),
         )
         self.retriever = self.vector_store.as_retriever(
             search_type="mmr",

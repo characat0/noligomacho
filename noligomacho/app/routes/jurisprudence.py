@@ -29,7 +29,7 @@ def format_docs(docs: list[Document]):
     return "\n\n".join(doc.page_content for doc in docs)
 
 llm = ChatOllama(
-    model="llama3.2:1b",
+    model="llama3:8b",
     temperature=0,
     # other params...
 )
