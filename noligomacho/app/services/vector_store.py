@@ -13,10 +13,7 @@ class VectorStoreService:
         self.vector_store = InMemoryVectorStore(
             OllamaEmbeddings(model="llama3.2:1b", temperature=0),
         )
-
-    def as_retriever(self):
-        """Return the vector store as a retriever."""
-        return self.vector_store.as_retriever()
+        self.retriever = self.vector_store.as_retriever()
 
     def add_file(self, file: SpooledTemporaryFile | BinaryIO) -> str:
         """Add a document to the vector store."""

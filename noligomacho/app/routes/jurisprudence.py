@@ -31,7 +31,7 @@ llm = ChatOllama(
 
 qa_chain = (
     {
-        "context": VectorStoreService().as_retriever() | format_docs,
+        "context": VectorStoreService().retriever | format_docs,
         "question": RunnablePassthrough(),
     }
     | prompt
