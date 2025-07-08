@@ -9,7 +9,7 @@ router = APIRouter(
 def add_document(
         files: list[UploadFile],
         vector_store: VectorStoreService = Depends(VectorStoreService),
-):
+) -> dict[str, list[str]]:
     if not files:
         raise HTTPException(status_code=400, detail="No files provided")
 
