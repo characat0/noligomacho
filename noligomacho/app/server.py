@@ -1,19 +1,20 @@
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from langserve import add_routes
-from .routes import foo
 
+from .routes import foo, add_document, jurisprudence
 
 app = FastAPI()
 
+app.include_router(add_document.router)
 
 @app.get("/")
 async def redirect_root_to_docs():
     return RedirectResponse("/docs")
 
 
-# Edit this to add the chain you want to add
-add_routes(app, foo.chain)
+add_routes(app, foo.chain, disabled_endpoints=["batch"], path="/foo")
+add_routes(app, jurisprudence.qa_chain, disabled_endpoints=["batch"], path="/jurisprudence")
 
 if __name__ == "__main__":
     import uvicorn
