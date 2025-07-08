@@ -14,7 +14,10 @@ class VectorStoreService:
         self.vector_store = InMemoryVectorStore(
             OllamaEmbeddings(model="llama3.2:1b", temperature=0),
         )
-        self.retriever = self.vector_store.as_retriever()
+        self.retriever = self.vector_store.as_retriever(
+            search_type="mmr",
+            search_kwargs={'k': 3, 'fetch_k': 50}
+        )
         self.text_splitter = SentenceTransformersTokenTextSplitter(
             model_name='sentence-transformers/all-mpnet-base-v2',
             tokens_per_chunk=256,  # Limit is 384 for sentence-transformers/all-mpnet-base-v2
@@ -38,10 +41,10 @@ class VectorStoreService:
         documents = self.text_splitter.split_documents(documents)
         return self.vector_store.add_documents(documents)[0]
 
-    def add_files(self, files: list[SpooledTemporaryFile | BinaryIO]) -> list[str]:
+    def add_files(self, files: list[tuple[SpooledTemporaryFile | BinaryIO, str]]) -> list[str]:
         """Add multiple documents to the vector store."""
         documents = [
-            Document(page_content=file.read().decode('utf-8'), metadata={"source": file.name})
+            Document(page_content=file[0].read().decode('utf-8'), metadata={"source": file[1]})
             for file in files
         ]
         documents = self.text_splitter.split_documents(documents)

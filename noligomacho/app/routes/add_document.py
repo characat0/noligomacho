@@ -14,7 +14,7 @@ def add_document(
         raise HTTPException(status_code=400, detail="No files provided")
 
     fs = [
-        x.file for x in files
+        (x.file, x.filename) for x in files
     ]
     ids = vector_store.add_files(fs)
     return {
