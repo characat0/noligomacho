@@ -26,8 +26,6 @@ class VectorStoreService:
 
     def split_documents(self, documents: list[Document]) -> list[Document]:
         """Split a document into smaller chunks."""
-        # For simplicity, we return the document as is.
-        # In a real application, you might want to implement a more sophisticated splitting logic.
         return self.text_splitter.split_documents(documents)
 
     def add_file(self, file: SpooledTemporaryFile | BinaryIO) -> str:
