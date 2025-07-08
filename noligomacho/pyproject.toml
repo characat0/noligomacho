@@ -19,6 +19,7 @@ langchain = "0.3.26"
 numpy = "^2.3.1"
 sentence-transformers = "^5.0.0"
 langchain-huggingface = "^0.3.0"
+langchain-elasticsearch = "^0.3.2"
 
 
 [tool.poetry.group.dev.dependencies]
