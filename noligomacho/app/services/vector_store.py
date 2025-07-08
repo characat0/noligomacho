@@ -5,7 +5,8 @@ from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_ollama import OllamaEmbeddings
 from langchain_core.documents import Document
 from tempfile import SpooledTemporaryFile
-from langchain_text_splitters import CharacterTextSplitter
+from langchain_text_splitters import SentenceTransformersTokenTextSplitter
+
 
 @lru_cache(None)
 class VectorStoreService:
@@ -14,8 +15,9 @@ class VectorStoreService:
             OllamaEmbeddings(model="llama3.2:1b", temperature=0),
         )
         self.retriever = self.vector_store.as_retriever()
-        self.text_splitter = CharacterTextSplitter(
-            chunk_size=256,
+        self.text_splitter = SentenceTransformersTokenTextSplitter(
+            model_name='sentence-transformers/all-mpnet-base-v2',
+            tokens_per_chunk=256,  # Limit is 384 for sentence-transformers/all-mpnet-base-v2
             chunk_overlap=32,
         )
 
