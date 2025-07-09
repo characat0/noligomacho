@@ -37,7 +37,7 @@ Answer like a legal scholar, referencing any relevant legal principles.
 """)
 
 
-def augment_with_veredict(docs: list[Document]) -> list[str]:
+def augment_with_veredict(docs: list[Document]) -> str:
     ' '.join([extract_highlight_with_tail(doc, field="text") for doc in docs])
 
 
