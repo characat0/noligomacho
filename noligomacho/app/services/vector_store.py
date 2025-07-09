@@ -78,9 +78,16 @@ class VectorStoreService:
         }
 
     def _bm25_vector_query_highlight(self, query: str) -> dict:
-        vector = expansion_chain.invoke(query).embedding
         return {
-            #  TODO: Get query from Juan
+            "size": 30,
+            "knn": self._vector_query(query),
+            "query": self._bm25_query(query),
+            "highlight": {
+                "fragment_size": 5000,
+                "number_of_fragments": 1,
+                "fields": "text",
+                "highlight_query": self._bm25_query(query)
+            }
         }
 
     def split_documents(self, documents: list[Document]) -> list[Document]:
