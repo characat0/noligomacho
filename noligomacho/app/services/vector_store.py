@@ -26,7 +26,7 @@ class VectorStoreService:
         self.retriever = ElasticsearchRetriever.from_es_params(
             index_name="documents",
             body_func=self._expanded_query,
-            content_field="content",
+            content_field="text",
             url="http://localhost:9200",
         )
         self.retriever = EnsembleRetriever(
@@ -34,13 +34,13 @@ class VectorStoreService:
                 ElasticsearchRetriever.from_es_params(
                     index_name="documents",
                     body_func=self._vector_query,
-                    content_field="content",
+                    content_field="text",
                     url="http://localhost:9200",
                 ),
                 ElasticsearchRetriever.from_es_params(
                     index_name="documents",
                     body_func=self._bm25_query,
-                    content_field="content",
+                    content_field="text",
                     url="http://localhost:9200",
                 )
             ],
@@ -56,10 +56,10 @@ class VectorStoreService:
         vector = expansion_chain.invoke(query).embedding
         return {
             "knn": {
-                "field": "embedding",
+                "field": "vector",
                 "query_vector": vector,
-                "k": 5,
-                "num_candidates": 50,
+                "k": 4,
+                "num_candidates": 128,
             }
         }
 
@@ -68,7 +68,7 @@ class VectorStoreService:
         return {
             "query": {
                 "match": {
-                    "content": query
+                    "text": query
                 }
             }
         }
