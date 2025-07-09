@@ -21,7 +21,7 @@ expansion = PydanticOutputParser(pydantic_object=ExpansionOutput)
 
 
 prompt = PromptTemplate(
-    input_variables=["context", "input"],
+    input_variables=["context", "query"],
     template="""
 <system>
 You are a retriever system responsible for answering questions when it comes to legal cases, on an example query you would generate the following document:

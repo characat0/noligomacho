@@ -2,6 +2,13 @@
 
 Here we maintain an organized log for decisions made during the project.
 
+## 2025-06-08
+
+- We will use elastic for document retrieval
+- We will do query expansion by:
+  - Using the query to generate synthetic documents using llama3:8b quantizied to 4bytes running locally in ollama
+  - Compute an average embedding from those documents using Qwen/Qwen3-Embedding-0.6B from hugging face
+
 ## 2025-06-07
 
 - Our team will be named `noligomacho` in honor to [this physics paper](https://web3.arxiv.org/abs/1712.02240v1)
