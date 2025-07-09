@@ -34,11 +34,11 @@ Answer format:
 Answer like a legal scholar, referencing any relevant legal principles.
 """)
 
-def hightlight_docs(docs: list[Document]):
+def highlight_docs(docs: list[Document]) -> list[Document]:
     # TODO: Implement a function that highlights the documents.
     return None
 
-def augment_with_veredict(docs: list[Document]):
+def augment_with_veredict(docs: list[Document]) -> str:
     # TODO: Implement a function that augments the documents with a veredict or summary.
     return None
 
@@ -61,7 +61,7 @@ qa_chain = (
             "context": ContextualCompressionRetriever(
                 base_compressor=reranker,
                 base_retriever=VectorStoreService().whole_doc_retriever,
-            ) | hightlight_docs | augment_with_veredict,
+            ) | highlight_docs | augment_with_veredict,
             "question": RunnablePassthrough(),
         }
         | prompt
