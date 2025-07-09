@@ -16,12 +16,15 @@ class Document(BaseModel):
 class ExpansionOutput(BaseModel):
     documents: list[Document]
 
+class ExpansionOutputVector(BaseModel):
+    embedding: list[float]
+
 
 expansion = PydanticOutputParser(pydantic_object=ExpansionOutput)
 
 
 prompt = PromptTemplate(
-    input_variables=["context", "query"],
+    input_variables=["query"],
     template="""
 <system>
 You are a retriever system responsible for answering questions when it comes to legal cases, on an example query you would generate the following document:
@@ -58,13 +61,14 @@ llm = ChatOllama(
 
 embedding_qwen = HuggingFaceEmbeddings(
     model_name="Qwen/Qwen3-Embedding-0.6B",
-    encode_kwargs={"normalize_embeddings": True},
 )
 
-def avg_embedding(o: ExpansionOutput) -> np.ndarray:
+def avg_embedding(o: ExpansionOutput) -> ExpansionOutputVector:
     embeddings = embedding_qwen.embed_documents([x.text for x in o.documents])
     avg: np.ndarray = np.mean(embeddings, axis=0, keepdims=True)
-    return avg[0]
+    return ExpansionOutputVector(
+        embedding=avg[0].tolist(),
+    )
     # print(avg.shape)
     # return avg
 
@@ -75,5 +79,5 @@ expansion_chain = (
         | avg_embedding
         # | (lambda x: json.dumps(x.tolist()))
         # | StrOutputParser()
-)
+).with_types(output_type=ExpansionOutputVector)
 

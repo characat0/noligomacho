@@ -1,28 +1,92 @@
 from functools import lru_cache
 from typing import BinaryIO
 
+import numpy as np
+from langchain.retrievers import EnsembleRetriever
 from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_elasticsearch import ElasticsearchStore, ElasticsearchRetriever
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_ollama import OllamaEmbeddings
 from langchain_core.documents import Document
 from tempfile import SpooledTemporaryFile
 from langchain_text_splitters import SentenceTransformersTokenTextSplitter
-
+from app.routes.hypothetical_expansion import expansion_chain
 
 @lru_cache(None)
 class VectorStoreService:
     def __init__(self):
-        self.vector_store = InMemoryVectorStore(
-            OllamaEmbeddings(model="llama3:8b", temperature=0),
+        self._embeddings = HuggingFaceEmbeddings(
+            model_name="Qwen/Qwen3-Embedding-0.6B",
         )
-        self.retriever = self.vector_store.as_retriever(
-            search_type="mmr",
-            search_kwargs={'k': 3, 'fetch_k': 50}
+        self.vector_store = ElasticsearchStore(
+            embedding=self._embeddings,
+            index_name="documents",
+            es_url="http://localhost:9200",
+        )
+        self.retriever = ElasticsearchRetriever.from_es_params(
+            index_name="documents",
+            body_func=self._expanded_query,
+            content_field="content",
+            url="http://localhost:9200",
+        )
+        self.retriever = EnsembleRetriever(
+            retrievers=[
+                ElasticsearchRetriever.from_es_params(
+                    index_name="documents",
+                    body_func=self._vector_query,
+                    content_field="content",
+                    url="http://localhost:9200",
+                ),
+                ElasticsearchRetriever.from_es_params(
+                    index_name="documents",
+                    body_func=self._bm25_query,
+                    content_field="content",
+                    url="http://localhost:9200",
+                )
+            ],
+            weights=[0.5, 0.5],
         )
         self.text_splitter = SentenceTransformersTokenTextSplitter(
             model_name='sentence-transformers/all-mpnet-base-v2',
             tokens_per_chunk=256,  # Limit is 384 for sentence-transformers/all-mpnet-base-v2
             chunk_overlap=32,
         )
+
+    def _vector_query(self, query: str) -> dict:
+        vector = expansion_chain.invoke(query).embedding
+        return {
+            "knn": {
+                "field": "embedding",
+                "query_vector": vector,
+                "k": 5,
+                "num_candidates": 50,
+            }
+        }
+
+    def _bm25_query(self, query: str) -> dict:
+        """Create a BM25 query for Elasticsearch."""
+        return {
+            "query": {
+                "match": {
+                    "content": query
+                }
+            }
+        }
+
+    def _hybrid_query(self, query: str, vector: np.ndarray = None) -> dict:
+        return {
+            "retriever": {
+                "linear": {
+                    "retrivers": [
+                        self._bm25_query(query),
+                        self._vector_query(query, vector),
+                    ]
+                }
+            }
+        }
+
+    def _expanded_query(self, query: str) -> dict:
+        return self._hybrid_query(query)
 
     def split_documents(self, documents: list[Document]) -> list[Document]:
         """Split a document into smaller chunks."""
