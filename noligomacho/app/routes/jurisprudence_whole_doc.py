@@ -9,6 +9,9 @@ from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_core.documents import Document
 
 from app.services.vector_store import VectorStoreService
+
+from noligomacho.app.text_utils.highlight_processor import extract_highlight_with_tail
+
 prompt = PromptTemplate(
     input_variables=["context", "input"],
     template="""
@@ -34,9 +37,8 @@ Answer like a legal scholar, referencing any relevant legal principles.
 """)
 
 
-def augment_with_veredict(docs: list[Document]) -> str:
-    # TODO: Implement a function that augments the documents with a veredict or summary.
-    return None
+def augment_with_veredict(docs: list[Document]) -> list[str]:
+    ' '.join([extract_highlight_with_tail(doc, field="text") for doc in docs])
 
 
 llm = ChatOllama(
