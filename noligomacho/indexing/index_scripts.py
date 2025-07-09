@@ -70,6 +70,6 @@ def create_es_index(
 # Example usage
 if __name__ == "__main__":
     # Create an index 'documents' with 768-dimensional embeddings
-    success = create_es_index("documents", embedding_dim=1024)
+    success = create_es_index("documents-whole", embedding_dim=1024)
     if success:
         print("Ready to index documents!")
