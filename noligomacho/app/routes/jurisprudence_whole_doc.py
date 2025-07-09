@@ -7,7 +7,6 @@ from langchain_ollama import ChatOllama
 from langchain_community.cross_encoders import HuggingFaceCrossEncoder
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_core.documents import Document
-from typer.rich_utils import highlighter
 
 from app.services.vector_store import VectorStoreService
 prompt = PromptTemplate(
