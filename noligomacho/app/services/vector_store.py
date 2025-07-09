@@ -11,13 +11,13 @@ from langchain_core.documents import Document
 from tempfile import SpooledTemporaryFile
 from langchain_text_splitters import SentenceTransformersTokenTextSplitter
 from app.routes.hypothetical_expansion import expansion_chain
+from app.services.models import embedding_qwen
+
 
 @lru_cache(None)
 class VectorStoreService:
     def __init__(self):
-        self._embeddings = HuggingFaceEmbeddings(
-            model_name="Qwen/Qwen3-Embedding-0.6B",
-        )
+        self._embeddings = embedding_qwen
         self.vector_store = ElasticsearchStore(
             embedding=self._embeddings,
             index_name="documents",

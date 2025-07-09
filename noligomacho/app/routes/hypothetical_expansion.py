@@ -7,6 +7,7 @@ from langchain_ollama import ChatOllama, OllamaEmbeddings
 from langchain_core.prompts import PromptTemplate
 from pydantic import BaseModel
 
+from app.services.models import embedding_qwen
 
 
 class Document(BaseModel):
@@ -59,9 +60,7 @@ llm = ChatOllama(
     # other params...
 )
 
-embedding_qwen = HuggingFaceEmbeddings(
-    model_name="Qwen/Qwen3-Embedding-0.6B",
-)
+
 
 def avg_embedding(o: ExpansionOutput) -> ExpansionOutputVector:
     embeddings = embedding_qwen.embed_documents([x.text for x in o.documents])
