@@ -8,6 +8,7 @@ from langchain_community.cross_encoders import HuggingFaceCrossEncoder
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_core.documents import Document
 
+from app.services.reranker import OllamaCrossEncoder
 from app.services.vector_store import VectorStoreService
 
 prompt = PromptTemplate(
@@ -35,17 +36,21 @@ Answer like a legal scholar, referencing any relevant legal principles.
 """)
 
 
-def augment_with_veredict(docs: list[Document]) -> str:
-
-    # TODO: Implement a function that augments the documents with a veredict or summary.
-    full_text = doc.get('_source', {}).get(field, "")
-
-    highlight_fragments = doc.get('highlight', {}).get(field, [])
-    highlight_text = " [...] ".join(highlight_fragments)
-
+def augment_single(doc: Document) -> str:
+    highlight = doc.metadata.get("highlight", [])
+    filter(lambda x: x, highlight)
+    text = " [...] ".join(highlight)
+    if not text:
+        return ""
+    tail_length = 1000
+    full_text = doc.page_content
     tail_text = full_text[-tail_length:] if full_text else ""
+    return f"<context_element>{text} [...] {tail_text}</context_element>".strip()
 
-    return f"{highlight_text} [...] {tail_text}".strip()
+def augment_with_veredict(docs: list[Document]) -> str:
+    augmented_docs = [augment_single(doc) for doc in docs if doc.page_content]
+    filter(lambda x: x, augmented_docs)
+    return "\n\n".join(augmented_docs)
 
 
 llm = ChatOllama(
@@ -55,8 +60,9 @@ llm = ChatOllama(
 
 
 reranker = CrossEncoderReranker(
-    model=HuggingFaceCrossEncoder(
-        model_name="Qwen/Qwen3-Reranker-0.6B",
+    model=OllamaCrossEncoder(
+        model="dengcao/Qwen3-Reranker-0.6B:F16",
+        base_url="http://localhost:11435",
     ),
     top_n=8,
 )

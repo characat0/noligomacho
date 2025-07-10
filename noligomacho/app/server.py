@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from langserve import add_routes
 
-from .routes import foo, add_document, jurisprudence, hypothetical_expansion, jurisprudence_whole_doc
+from app.routes import foo, add_document, jurisprudence, hypothetical_expansion, jurisprudence_whole_doc
 
 app = FastAPI()
 

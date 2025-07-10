@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import BinaryIO
+from typing import BinaryIO, Dict, Mapping, Any
 
 import numpy as np
 from langchain.retrievers import EnsembleRetriever
@@ -14,6 +14,12 @@ from langchain_text_splitters import SentenceTransformersTokenTextSplitter
 from app.routes.hypothetical_expansion import expansion_chain
 from app.services.models import embedding_qwen
 
+
+def custom_document_mapper(hit: Mapping[str, Any]) -> Document:
+    """Custom document mapper for Elasticsearch hits."""
+    content = hit["_source"].pop("text")
+    highlight = hit.get("highlight", {}).get("text", [])
+    return Document(page_content=content, metadata={**hit, "highlight": highlight})
 
 @lru_cache(None)
 class VectorStoreService:
@@ -34,7 +40,8 @@ class VectorStoreService:
         self.whole_doc_retriever = ElasticsearchRetriever.from_es_params(
             index_name=self._es_index,
             body_func=self._bm25_vector_query_highlight,
-            content_field="text",
+            document_mapper=custom_document_mapper,
+            # content_field="text",
             url="http://localhost:9200",
         )
         self.retriever = EnsembleRetriever(
@@ -83,17 +90,21 @@ class VectorStoreService:
         }
 
     def _bm25_vector_query_highlight(self, query: str) -> dict:
-        return {
+        q = {
             "size": 30,
             **self._vector_query(query),
             **self._bm25_query(query),
             "highlight": {
                 "fragment_size": 5000,
                 "number_of_fragments": 1,
-                "fields": "text",
-                "highlight": self._bm25_query(query)
+                "fields": {
+                    "text": {
+                        "highlight_query": self._bm25_query(query)["query"],
+                    }
+                },
             }
         }
+        return q
 
     def split_documents(self, documents: list[Document]) -> list[Document]:
         """Split a document into smaller chunks."""
