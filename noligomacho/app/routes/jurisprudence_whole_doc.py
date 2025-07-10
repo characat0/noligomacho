@@ -10,8 +10,6 @@ from langchain_core.documents import Document
 
 from app.services.vector_store import VectorStoreService
 
-from noligomacho.app.text_utils.highlight_processor import extract_highlight_with_tail
-
 prompt = PromptTemplate(
     input_variables=["context", "input"],
     template="""
@@ -38,7 +36,16 @@ Answer like a legal scholar, referencing any relevant legal principles.
 
 
 def augment_with_veredict(docs: list[Document]) -> str:
-    ' '.join([extract_highlight_with_tail(doc, field="text") for doc in docs])
+
+    # TODO: Implement a function that augments the documents with a veredict or summary.
+    full_text = doc.get('_source', {}).get(field, "")
+
+    highlight_fragments = doc.get('highlight', {}).get(field, [])
+    highlight_text = " [...] ".join(highlight_fragments)
+
+    tail_text = full_text[-tail_length:] if full_text else ""
+
+    return f"{highlight_text} [...] {tail_text}".strip()
 
 
 llm = ChatOllama(

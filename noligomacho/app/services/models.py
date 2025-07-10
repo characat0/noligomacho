@@ -1,8 +1,6 @@
 from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_ollama import OllamaEmbeddings
 
-embedding_qwen = HuggingFaceEmbeddings(
-    model_name="Qwen/Qwen3-Embedding-0.6B",
-    model_kwargs={
-        "truncate_dim": 1024,
-    },
+embedding_qwen = OllamaEmbeddings(
+    model="dengcao/Qwen3-Embedding-0.6B:f16",
 )

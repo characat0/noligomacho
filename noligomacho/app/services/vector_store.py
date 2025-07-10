@@ -25,6 +25,11 @@ class VectorStoreService:
             index_name="documents",
             es_url="http://localhost:9200",
         )
+        self.vector_store_whole = ElasticsearchStore(
+            embedding=self._embeddings,
+            index_name=self._es_index,
+            es_url="http://localhost:9200",
+        )
 
         self.whole_doc_retriever = ElasticsearchRetriever.from_es_params(
             index_name=self._es_index,
@@ -80,13 +85,13 @@ class VectorStoreService:
     def _bm25_vector_query_highlight(self, query: str) -> dict:
         return {
             "size": 30,
-            "knn": self._vector_query(query),
-            "query": self._bm25_query(query),
+            **self._vector_query(query),
+            **self._bm25_query(query),
             "highlight": {
                 "fragment_size": 5000,
                 "number_of_fragments": 1,
                 "fields": "text",
-                "highlight_query": self._bm25_query(query)
+                "highlight": self._bm25_query(query)
             }
         }
 
@@ -120,7 +125,7 @@ class VectorStoreService:
             Document(page_content=file[0].read().decode('utf-8'), metadata={"source": file[1]})
             for file in files
         ]
-        return self.vector_store.add_documents(documents)
+        return self.vector_store_whole.add_documents(documents)
 
     def similarity_search(self, query, k=5):
         """Search for similar documents in the vector store."""
