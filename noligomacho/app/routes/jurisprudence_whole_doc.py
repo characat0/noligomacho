@@ -47,7 +47,7 @@ def augment_single(doc: Document) -> str:
     tail_text = full_text[-tail_length:] if full_text else ""
     return f"<context_element>{text} [...] {tail_text}</context_element>".strip()
 
-def augment_with_veredict(docs: list[Document]) -> str:
+def augment_with_verdict(docs: list[Document]) -> str:
     augmented_docs = [augment_single(doc) for doc in docs if doc.page_content]
     filter(lambda x: x, augmented_docs)
     return "\n\n".join(augmented_docs)
@@ -72,7 +72,7 @@ qa_chain = (
             "context": ContextualCompressionRetriever(
                 base_compressor=reranker,
                 base_retriever=VectorStoreService().whole_doc_retriever,
-            ) | augment_with_veredict,
+            ) | augment_with_verdict,
             "question": RunnablePassthrough(),
         }
         | prompt
