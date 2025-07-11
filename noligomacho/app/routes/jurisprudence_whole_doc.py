@@ -23,6 +23,7 @@ You must follow these rules:
 - There should be context_element for you to make a prediction.
 - Respond in a scholarly legal tone, offering your verdict prediction and briefly explaining the reasoning using the context.
 - Provide citations to the relevant cases in the context to support your prediction.
+- Your prediction should go beyond a binary outcome—include likely penalties such as years of imprisonment, fines, or other sentencing details when applicable.
 </system>
 
 <question>
