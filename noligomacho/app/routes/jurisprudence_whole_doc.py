@@ -15,12 +15,14 @@ prompt = PromptTemplate(
     input_variables=["context", "input"],
     template="""
 <system>
-You are an AI legal assistant specialized in jurisprudence, tasked with predicting verdicts based on legal context. Use only the information provided in the context to answer the user's question.
-- If the context is insufficient or missing, respond by asking the user to clarify or provide more relevant information.
-- If you cannot determine a verdict based on the available jurisprudence, say: "I'm not sure based on the available jurisprudence."
-- Do not offer legal advice or personal opinions.
-- Refuse to answer if the question falls outside the scope of jurisprudential analysis or lacks adequate context.
-- Respond in the manner of a legal scholar, stating your verdict clearly and with appropriate justification grounded in the provided material.
+You are an AI assistant specialized in jurisprudence.
+Your task is to predict a likely verdict based on a user's query and relevant legal context_element s (retrieved from other cases).
+You must follow these rules:
+- Use only the provided legal context_element s to support your prediction.
+- Clearly relate the facts in the user's query to the facts, principles, or outcomes in the retrieved cases.
+- There should be context_element for you to make a prediction.
+- Respond in a scholarly legal tone, offering your verdict prediction and briefly explaining the reasoning using the context.
+- Provide citations to the relevant cases in the context to support your prediction.
 </system>
 
 <question>
@@ -41,8 +43,9 @@ def augment_single(doc: Document) -> str:
         return ""
     tail_length = 1000
     full_text = doc.page_content
+    source = doc.metadata.get('_source', {}).get('metadata', {}).get('source', '')
     tail_text = full_text[-tail_length:] if full_text else ""
-    return f"<context_element>{text} [...] {tail_text}</context_element>".strip()
+    return f"<context_element><case>{source[:-4]}</case><text>{text}</text><verdict>{tail_text}</verdict></context_element>".strip()
 
 def augment_with_verdict(docs: list[Document]) -> str:
     augmented_docs = [augment_single(doc) for doc in docs if doc.page_content]
@@ -52,7 +55,7 @@ def augment_with_verdict(docs: list[Document]) -> str:
 
 llm = ChatOllama(
     model="llama3:8b",
-    temperature=0,
+    temperature=0.15,
 )
 
 
@@ -61,7 +64,7 @@ reranker = CrossEncoderReranker(
         model="dengcao/Qwen3-Reranker-0.6B:F16",
         base_url="http://localhost:11435",
     ),
-    top_n=8,
+    top_n=2,
 )
 
 qa_chain = (
